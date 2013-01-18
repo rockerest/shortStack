@@ -176,21 +176,31 @@
                                 "margin": "3px 0 -3px 2px"
                             })
                             .keyup( function(){
-                                var $this = $(this),
-                                    filtered = [],
-                                    text;
-                                if( $this.val() == "" ){
+                                var $this       = $(this),
+                                    filtered    = [],
+                                    val         = $this.val(),
+                                    split       = val.split( " " ),
+                                    matchesAll,text;
+
+                                if( val == "" ){
                                     obj.shortStack( "refresh" );
                                 }
                                 else{
                                     $(settings.sss.rows).each( function( i, row ){
                                         text = $(row).text();
+                                        matchesAll = true;
+
                                         $(row).find("select,input").each( function( i, is ){
                                             text = text + ", " + $(is).val();
                                         });
 
                                         text = $.trim( text.replace( /\s*/g, "" ) ).toLowerCase();
-                                        if( text.search( $this.val().toLowerCase() ) > -1 ){
+
+                                        $( split ).each( function( i, string ){
+                                            matchesAll = text.search( string.toLowerCase() ) > -1 ? matchesAll && true : matchesAll && false;
+                                        });
+
+                                        if( matchesAll ){\
                                             filtered.push( row );
                                         }
                                     });
