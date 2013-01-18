@@ -200,7 +200,7 @@
                                             matchesAll = text.search( string.toLowerCase() ) > -1 ? matchesAll && true : matchesAll && false;
                                         });
 
-                                        if( matchesAll ){\
+                                        if( matchesAll ){
                                             filtered.push( row );
                                         }
                                     });
