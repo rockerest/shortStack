@@ -5,7 +5,7 @@
         "init": function( options ){
             return this.each(function(){
                 var $this       = $(this),
-                    settings;
+                    settings,mix;
 
                 if( $this.get( 0 ).tagName !== "TABLE" ){
                     throw new Error( "jquery.shortStack can only operate on TABLE elements: " + $this.get( 0 ).tagName + " given." );
@@ -24,7 +24,8 @@
                             "borderBottom": "2px solid #999999",
                             "backgroundColor": "#EEEEEE",
                             "padding": "2px"
-                        }
+                        },
+                        "position": "bottom"
                     },
                     "buttons": {
                         "previous": {
@@ -40,13 +41,35 @@
                 };
 
                 //extend data with options object
-                settings = $.extend(settings, options);
-                $this.data("shortStack", settings);
+                mix = $.extend(true, mix, settings, options);
+                $this.data("shortStack", mix);
 
-                $this.after( privacy.makeControlBar( $this ) );
+                if( mix.control.position == "bottom" ){
+                    $this.after( privacy.makeControlBar( $this ) );
+                }
+                else if( mix.control.position == "top" ){
+                    $this.before( privacy.makeControlBar( $this ) );
+                }
+
                 $this.shortStack( "refresh" );
-                privacy.hideImpotentButtons( settings, $this );
+                privacy.hideImpotentButtons( mix, $this );
             });
+        },
+        "update": function( options ){
+            var $this       = $(this),
+                settings    = $this.data( "shortStack" ),
+                location    = settings.control.position,
+                mix;
+
+            mix = $.extend(true, mix, settings, options);
+
+            if( location != mix.control.position ){
+                privacy.moveControlBar( $this, mix.control.position );
+            }
+
+            $this.data("shortStack", mix);
+
+            $this.shortStack( "refresh" );
         },
         "nextPage": function(){
             return this.each(function(){
@@ -221,8 +244,9 @@
                         .append( button
                             .clone()
                             .html( settings.buttons.previous.text )
-                            .click( function( e ){
-                                var ss  = $( e.target ).closest( ".shortStack-controlBar" ).prev();
+                            .on( "click", function( e ){
+                                var ss = privacy.findTableFromControlBar( $(this).closest( ".shortStack-controlBar" ), settings );
+
                                 ss.shortStack( "previousPage" );
                                 $(this).blur();
                                 return false;
@@ -231,8 +255,9 @@
                         .append( button
                             .clone()
                             .html( settings.buttons.next.text )
-                            .click( function( e ){
-                                var ss  = $( e.target ).closest( ".shortStack-controlBar" ).prev();
+                            .on( "click", function( e ){
+                                var ss = privacy.findTableFromControlBar( $(this).closest( ".shortStack-controlBar" ), settings );
+
                                 ss.shortStack( "nextPage" );
                                 $(this).blur();
                                 return false;
@@ -245,7 +270,7 @@
             return controlBar;
         },
         "togglePaginationButtons": function( obj, state ){
-            var btnContainer = obj.next( ".shortStack-controlBar" ).find( ".shortStack-controlBar-paginationButtons" );
+            var btnContainer = privacy.findControlBarFromTable( obj ).find( ".shortStack-controlBar-paginationButtons" );
             if( state ){
                 btnContainer.fadeIn( 350 );
             }
@@ -254,7 +279,7 @@
             }
         },
         "toggleControlBar": function( obj, state ){
-            var bar = obj.next( ".shortStack-controlBar" );
+            var bar = privacy.findControlBarFromTable( obj );
             if( state ){
                 bar.fadeIn( 350 );
             }
@@ -262,9 +287,17 @@
                 bar.fadeOut( 350 );
             }
         },
+        "moveControlBar": function( obj, to ){
+            if( to == "top" ){
+                privacy.findControlBarFromTable( obj ).insertBefore( obj );
+            }
+            else if( to == "bottom" ){
+                privacy.findControlBarFromTable( obj ).insertAfter( obj );
+            }
+        },
         "hideImpotentButtons": function( settings, obj ){
-            var prevBtn = obj.next( ".shortStack-controlBar" ).find( ".shortStack-controlBar-paginationButtons button" ).first(),
-                nextBtn = obj.next( ".shortStack-controlBar" ).find( ".shortStack-controlBar-paginationButtons button" ).last(),
+            var prevBtn = privacy.findControlBarFromTable( obj ).find( ".shortStack-controlBar-paginationButtons button" ).first(),
+                nextBtn = privacy.findControlBarFromTable( obj ).find( ".shortStack-controlBar-paginationButtons button" ).last(),
                 prev    = privacy.getPreviousIndex( settings ),
                 next    = privacy.getNextIndex( settings ),
                 present = settings.start;
@@ -295,6 +328,17 @@
         },
         "getPreviousIndex": function( settings ){
             return (settings.start - settings.rows) < 0 ? 0 : settings.start - settings.rows;;
+        },
+        "findControlBarFromTable": function( obj ){
+            var settings    = obj.data( "shortStack" ),
+                position    = settings.control.position;
+
+            return (position == "bottom") ? obj.next( ".shortStack-controlBar" ) : ( (position == "top") ? obj.prev( ".shortStack-controlBar" ) : false );
+        },
+        "findTableFromControlBar": function( obj, settings ){
+            var position = settings.control.position;
+
+            return (position == "bottom") ? obj.prev( "table" ) : ( (position == "top") ? obj.next( "table" ) : false );
         }
     };
 
