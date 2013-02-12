@@ -111,6 +111,7 @@
                         privacy.toggleControlBar( $this, false );
                     }
                     else{
+                        privacy.toggleControlBar( $this, true );
                         privacy.togglePaginationButtons( $this, false );
                     }
                 }
@@ -198,7 +199,7 @@
                             .css({
                                 "margin": "3px 0 -3px 2px"
                             })
-                            .keyup( function(){
+                            .on( "keyup change blur", function(){
                                 var $this       = $(this),
                                     filtered    = [],
                                     val         = $this.val(),
@@ -206,6 +207,7 @@
                                     matchesAll,text;
 
                                 if( val == "" ){
+                                    $(settings.sss.rows).show();
                                     obj.shortStack( "refresh" );
                                 }
                                 else{
