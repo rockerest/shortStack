@@ -315,7 +315,7 @@
                 nextBtn.show();
             }
             else{
-                if( present == next ){
+                if( present == next || next == settings.sss.rowsCount ){
                     nextBtn.hide();
                 }
                 else{
